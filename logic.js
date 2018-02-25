@@ -50,8 +50,12 @@ var colorLkUpLst = [
 
 function getColor(mag){
 
-    var chk_mag = Math.round(mag) - 1;
+    var chk_mag = Math.round(mag);
+
+    if (chk_mag > mag) chk_mag = chk_mag - 1;
+   
     var colorLkUp = colorLkUpLst[chk_mag];
+    
     if(colorLkUp != undefined){
         return colorLkUp.color;
     } 
