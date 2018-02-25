@@ -5,16 +5,53 @@ var earthquakeMag = [];
 
 var earthquakedat = "";
 
+var colorLkUpLst = [
+  {
+    limits: "0-1",
+    color: "yellow"
+  },
+  {
+    limits: "1-2",
+    color: "lightgreen"
+  },
+  {
+    limits: "2-3",
+    color: "green"
+  },
+  {
+    limits: "3-4",
+    color: "pink"
+  },
+  {
+    limits: "4-5",
+    color: "orange"
+  },
+  {
+    limits: "5-6",
+    color: "red"
+  },
+  {
+    limits: "6-7",
+    color: "darkred"
+  },
+  {
+    limits: "7+",
+    color: "maroon"
+  }
+
+]
+
 var colorLkUp = {
+  0: "yellow",
   1: "yellow",
   2: "lightgreen",
   3: "green",
-  4: "orange",
-  5: "pink",
+  4: "pink",
+  5: "orange",
   6: "red",
-  7: "blue"
+  7: "darkred"
 
-}
+};
 function getColor(mag){
 
 var v2 = colorLkUp[Math.round(mag)];
@@ -22,48 +59,23 @@ if(v2 != undefined){
     return v2;
 }
 else {
-    return "black";
+    return "crimson";
 }
 
-}
+};
+
+plates_url = "https://embed.github.com/fraxen/tectonicplates/blob/master/GeoJSON/PB2002_boundaries.json";
 
 // Perform a GET request to the query URL
 d3.json(queryUrl, function(data) {
   // Once we get a response, send the data.features object to the createFeatures function
   createFeatures(data.features);
-  // function pointToLayer(feature, latlng) {
-   
-  //   return L.circleMarker(latlng, {
-  //                                   radius: feature.properties.mag,
-                                    
-  //                                   weight: 0,
-  //                                   opacity: 0,
-  //                                   fillOpacity: 0.8
-  //   });
-    
-  // }
-
-  // var earthquakes =    L.choropleth(data, {
-  //   valueProperty: "mag",
-  //   scale: ["#ffffb2", "#b10026"],
-  //   steps: 5,
-  //   mode: 'q',
-  //   style: {
-  //     color: '#fff',
-  //     weight: 2,
-  //     fillOpacity: 0.8
-  //   },
-  //   onEachFeature: function (feature, layer) {
-  //     layer.bindPopup("<h3>" + feature.properties.place +
-  //   "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
-  //   },
-  //   pointToLayer: pointToLayer 
-    
-  // });
-
-  // createMap(earthquakes);
-  earthquakedat = data;
+  
 });
+
+
+
+
 
 function createFeatures(earthquakeData) {
 
@@ -71,7 +83,7 @@ function createFeatures(earthquakeData) {
   // Give each feature a popup describing the place and time of the earthquake
   function onEachFeature(feature, layer) {
     layer.bindPopup("<h3>" + feature.properties.place +
-      "</h3><hr><p>" + new Date(feature.properties.time) + "</p>");
+      "</h3><hr><p>" + new Date(feature.properties.time) + "</p>" + "<hr><p>Magnitude=>" + feature.properties.mag + "</p>");
     earthquakeMag.push(feature.properties.mag);
     
   }
@@ -99,15 +111,27 @@ function createFeatures(earthquakeData) {
     pointToLayer: pointToLayer  });
 
 
+    var platesData = "";
+
+    d3.json("http://localhost:8000/PB2002_boundaries.json", function(data) {
+      // Once we get a response, send the data.features object to the createFeatures function
+      platesData = L.geoJSON(data);
+      
+      console.log(platesData);
+      console.log(earthquakes);
+      // Sending our earthquakes layer to the createMap function
+      createMap(earthquakes,platesData);
+    });
+
+
   
 
-  console.log(earthquakeMag);
+  
 
-  // Sending our earthquakes layer to the createMap function
-  createMap(earthquakes);
+  
 }
 
-function createMap(earthquakes) {
+function createMap(earthquakes,platesData) {
 
   // Define streetmap and darkmap layers
   var streetmap = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/outdoors-v10/tiles/256/{z}/{x}/{y}?" +
@@ -128,8 +152,12 @@ function createMap(earthquakes) {
 
   // Create overlay object to hold our overlay layer
   var overlayMaps = {
-    Earthquakes: earthquakes
+    Earthquakes: earthquakes,
+    "Fault Lines": platesData
   };
+
+ 
+
 
   
 
@@ -139,24 +167,13 @@ function createMap(earthquakes) {
       37.09, -15.71
     ],
     zoom: 2,
-    layers: [streetmap, earthquakes]
+    layers: [streetmap, earthquakes,platesData]
   });
 
-  // L.geoJson(earthquakedat,{
-  //   pointToLayer: function(feature,latlng){
-  //     var marker = L.circleMarker(latlng, {
-  //       radius: feature.properties.mag,
-  //       fillColor:  "#000",
-  //       color: "#000",
-  //       weight: 1,
-  //       opacity: 1,
-  //       fillOpacity: 0.8
-  //     });
-  //     return marker;
-  //   }
-  // }).addTo(myMap);
-
   
+ 
+
+  console.log(platesData);
 
   // Create a layer control
   // Pass in our baseMaps and overlayMaps
