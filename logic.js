@@ -1,66 +1,65 @@
 // Store our API endpoint inside queryUrl
 var queryUrl = "https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/significant_month.geojson";
 
-var earthquakeMag = [];
 
-var earthquakedat = "";
 
 var colorLkUpLst = [
   {
+    
     limits: "0-1",
     color: "yellow"
   },
   {
+    
     limits: "1-2",
     color: "lightgreen"
   },
   {
+   
     limits: "2-3",
     color: "green"
   },
   {
+    
     limits: "3-4",
     color: "pink"
   },
   {
+   
     limits: "4-5",
     color: "orange"
   },
   {
+    
     limits: "5-6",
     color: "red"
   },
   {
+    
     limits: "6-7",
     color: "darkred"
   },
   {
+    
     limits: "7+",
     color: "maroon"
   }
 
 ]
 
-var colorLkUp = {
-  0: "yellow",
-  1: "yellow",
-  2: "lightgreen",
-  3: "green",
-  4: "pink",
-  5: "orange",
-  6: "red",
-  7: "darkred"
 
-};
 function getColor(mag){
 
-var v2 = colorLkUp[Math.round(mag)];
-if(v2 != undefined){
-    return v2;
-}
-else {
-    return "crimson";
-}
+    var chk_mag = Math.round(mag) - 1;
+    var colorLkUp = colorLkUpLst[chk_mag];
+    if(colorLkUp != undefined){
+        return colorLkUp.color;
+    } 
+    else {
+        return "crimson";
+    }
+    
+
 
 };
 
@@ -84,7 +83,7 @@ function createFeatures(earthquakeData) {
   function onEachFeature(feature, layer) {
     layer.bindPopup("<h3>" + feature.properties.place +
       "</h3><hr><p>" + new Date(feature.properties.time) + "</p>" + "<hr><p>Magnitude=>" + feature.properties.mag + "</p>");
-    earthquakeMag.push(feature.properties.mag);
+    
     
   }
   
@@ -117,8 +116,8 @@ function createFeatures(earthquakeData) {
       // Once we get a response, send the data.features object to the createFeatures function
       platesData = L.geoJSON(data);
       
-      console.log(platesData);
-      console.log(earthquakes);
+      // console.log(platesData);
+      // console.log(earthquakes);
       // Sending our earthquakes layer to the createMap function
       createMap(earthquakes,platesData);
     });
@@ -142,10 +141,18 @@ function createMap(earthquakes,platesData) {
     "access_token=pk.eyJ1Ijoia2pnMzEwIiwiYSI6ImNpdGRjbWhxdjAwNG0yb3A5b21jOXluZTUifQ." +
     "T6YbdDixkOBWH_k9GbS8JQ");
 
+  var satellite = L.tileLayer("https://api.mapbox.com/styles/v1/mapbox/satellite-v9/tiles/256/{z}/{x}/{y}?" +
+    "access_token=pk.eyJ1Ijoia2pnMzEwIiwiYSI6ImNpdGRjbWhxdjAwNG0yb3A5b21jOXluZTUifQ." +
+    "T6YbdDixkOBWH_k9GbS8JQ");
+
+  
+
   // Define a baseMaps object to hold our base layers
   var baseMaps = {
+    "Satellite": satellite,
     "Street Map": streetmap,
     "Dark Map": darkmap
+    
   };
 
   
@@ -167,13 +174,13 @@ function createMap(earthquakes,platesData) {
       37.09, -15.71
     ],
     zoom: 2,
-    layers: [streetmap, earthquakes,platesData]
+    layers: [satellite, earthquakes,platesData]
   });
 
   
  
 
-  console.log(platesData);
+  // console.log(platesData);
 
   // Create a layer control
   // Pass in our baseMaps and overlayMaps
@@ -184,23 +191,20 @@ function createMap(earthquakes,platesData) {
 
   
 
-/// Add legend (don't forget to add the CSS from index.html)
+/// Add legend 
 var legend = L.control({ position: 'bottomright' })
 legend.onAdd = function (map) {
   var div = L.DomUtil.create('div', 'info legend')
-  var limits = [0,1,2,3,4,5,6,7]
-  var colors = colorLkUp
+
   var labels = []
 
-  console.log(limits);
-  console.log(colors);
 
   // Add min & max
-  div.innerHTML = '<div class="labels"><div class="min">' + limits[0] + '</div> \
-    <div class="max">' + limits[limits.length - 1] + '</div></div>'
+  div.innerHTML = '<div class="labels"><div class="min"></div> \
+    <div class="max"></div></div>'
 
-  limits.forEach(function (limit, index) {
-    labels.push('<li style="background-color: ' + colors[index] + '"></li>')
+  colorLkUpLst.forEach(function (data, index) {
+    labels.push('<li style="background-color: ' + data.color + '"></li><span align="center">&nbsp;&nbsp;'+ data.limits+'</span> </BR>')
   })
 
   div.innerHTML += '<ul>' + labels.join('') + '</ul>'
@@ -208,3 +212,4 @@ legend.onAdd = function (map) {
 }
 legend.addTo(myMap)
 }
+
